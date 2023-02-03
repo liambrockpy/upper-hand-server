@@ -46,6 +46,8 @@ def register():
     db.session.add(new_user)
     db.session.commit()
 
+    session["user_id"] = new_user.id
+
     return jsonify({'id': new_user.id, 'email': new_user.email})
 
 
@@ -63,6 +65,11 @@ def login():
 
     return jsonify({'id': user.id, 'email': user.email})
 
+
+@app.route('/logout', methods=['POST'])
+def logout():
+    session.pop('user_id')
+    return "200"
 
 
 @app.errorhandler(exceptions.NotFound)
