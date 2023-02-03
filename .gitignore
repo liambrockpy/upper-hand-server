@@ -1,2 +1,3 @@
 app.db
 Pipfile.lock
+.env

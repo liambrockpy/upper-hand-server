@@ -1,17 +1,10 @@
 from app import app, db
 from app.sockets import socketio
-
-from flask import jsonify, render_template, flash, redirect, url_for
+from flask import jsonify, request, session
 from werkzeug import exceptions
 from werkzeug.urls import url_parse
 from app.models import User
 from flask_socketio import SocketIO, emit
-
-search_term = "" 
-
-@app.route("/")
-def index():
-    return render_template('index.html')
 
 # @socketio.on('connect')
 # def connect():
@@ -24,6 +17,52 @@ def index():
 # @socketio.on('message')
 # def handle_message(message):
 #     emit('message', message, broadcast=True)
+
+
+@app.route('/@me')
+def get_current_user():
+    user_id = session.get('user_id')
+
+    if not user_id:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    user = User.query.filter_by(id=user_id).first()
+    return jsonify({'id': user.id, 'email': user.email})
+ 
+
+@app.route("/register", methods=['POST'])
+def register():
+    email = request.json['email']
+    password = request.json['password']
+
+    user_exists = User.query.filter_by(email=email).first() is not None
+
+    if user_exists:
+        return jsonify({'error': 'User already exists'}), 409
+
+    new_user = User(email=email)
+    new_user.set_password(password)
+
+    db.session.add(new_user)
+    db.session.commit()
+
+    return jsonify({'id': new_user.id, 'email': new_user.email})
+
+
+@app.route('/login', methods=['POST'])
+def login():
+    email = request.json['email']
+    password = request.json['password']
+
+    user = User.query.filter_by(email=email).first() 
+
+    if user is None or not user.check_password(password):
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    session['user_id'] = user.id
+
+    return jsonify({'id': user.id, 'email': user.email})
+
 
 
 @app.errorhandler(exceptions.NotFound)
