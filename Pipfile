@@ -1,0 +1,20 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+flask-sqlalchemy = "*"
+flask-cors = "*"
+flask-migrate = "*"
+flask-socketio = "*"
+flask = {extras = ["async"], version = "*"}
+flask-login = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.10"
+
+[scripts]
+dev = "flask --app upper_hand.py --debug run"
