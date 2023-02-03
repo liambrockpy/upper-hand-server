@@ -7,7 +7,7 @@ from flask_socketio import SocketIO
 from flask_session import Session
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, supports_credentials=True)
 
 app.config.from_object(Config)
 
