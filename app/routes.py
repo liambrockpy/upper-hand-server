@@ -1,8 +1,23 @@
 from app import app, db
+from app.sockets import socketio
 from flask import jsonify, request, session
 from werkzeug import exceptions
 from werkzeug.urls import url_parse
 from app.models import User
+from flask_socketio import SocketIO, emit
+
+# @socketio.on('connect')
+# def connect():
+#     print('Client connected')
+
+# @socketio.on('disconnect')
+# def disconnect():
+#     print('Client disconnected')
+
+# @socketio.on('message')
+# def handle_message(message):
+#     emit('message', message, broadcast=True)
+
 
 @app.route('/@me')
 def get_current_user():
@@ -13,8 +28,7 @@ def get_current_user():
 
     user = User.query.filter_by(id=user_id).first()
     return jsonify({'id': user.id, 'email': user.email})
-    
-
+ 
 
 @app.route("/register", methods=['POST'])
 def register():
@@ -51,8 +65,6 @@ def login():
 
 
 
-##########################
-
 @app.errorhandler(exceptions.NotFound)
 def error_404(err):
     return jsonify({"message": f"Oops.. {err}"}), 404
@@ -67,3 +79,4 @@ def handle_500(err):
 
 if __name__ == "__main__":
     app.run(debug=True)
+    socketio.run(app)
