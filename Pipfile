@@ -10,6 +10,9 @@ flask-migrate = "*"
 flask-socketio = "*"
 flask = {extras = ["async"], version = "*"}
 flask-login = "*"
+python-dotenv = "*"
+flask-session = "*"
+redis = "*"
 
 [dev-packages]
 
