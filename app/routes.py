@@ -3,20 +3,24 @@ from app.sockets import socketio
 from flask import jsonify, request, session
 from werkzeug import exceptions
 from werkzeug.urls import url_parse
-from app.models import User
+from app.models import User, Deck
 from flask_socketio import SocketIO, emit
 
-# @socketio.on('connect')
-# def connect():
-#     print('Client connected')
+from poker import Card
+from poker.hand import Hand, Combo
 
-# @socketio.on('disconnect')
-# def disconnect():
-#     print('Client disconnected')
+from pokerlib.enums import Rank, Suit
+from pokerlib import HandParser
 
-# @socketio.on('message')
-# def handle_message(message):
-#     emit('message', message, broadcast=True)
+
+@app.route('/')
+def index():
+    # deck1 = Deck()
+    # deck2 = Deck()
+    # print("FIRST",deck1.deck)
+    # print("SECOND",deck2.deck)
+    # print(list(Combo))
+    return 'Hello World'
 
 
 @app.route('/@me')
