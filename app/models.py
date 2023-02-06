@@ -29,13 +29,13 @@ class User(db.Model):
 
 
 class GameState:
-    def __init__(self, join_code, starting_chips, small_blind_amount, big_blind_amount, host):
+    def __init__(self, join_code, host):
         self.join_code = join_code
         self.deck = Deck().deck
         self.phase = "preflop"
-        self.starting_chips = starting_chips
-        self.small_blind_amount = small_blind_amount
-        self.big_blind_amount = big_blind_amount
+        self.starting_chips = 10000
+        self.small_blind_amount = 20
+        self.big_blind_amount = 50
         self.players = {
             "seat_1": host,
             "seat_2": None,
@@ -71,7 +71,7 @@ class GameState:
 
     def update_player(self, player):
         for seat in self.players:
-            if self.players[seat].id == player.id:
+            if self.players[seat] != None and self.players[seat].id == id:
                 self.players[seat] = player
                 return
     
@@ -190,11 +190,32 @@ class GameState:
         self.players[seat].is_playing = False
         self.players[seat].remaining_chips -= self.players[seat].chips_in_play
 
+    def fold(self, id):
+        seat = self.get_player_by_id(id)
+        self.players[seat].is_playing = False
+        self.players[seat].bet_type = "fold"
+    
+    def bet(self, id, amount, type):
+        seat = self.get_player_by_id(id)
+        self.players[seat].remaining_chips -= amount
+        self.players[seat].chips_in_play += amount
+        self.players[seat].current_bet += amount
+        self.total_chips_in_play += amount
+        self.players[seat].bet_type = type
+
+    def reset_bets(self):
+        for seat in self.players:
+            if self.players[seat] != None:
+                self.players[seat].current_bet = 0
+                self.players[seat].bet_type = None
+
+
 
 
 class Player:
-    def __init__(self, name, avatar, is_host, remaining_chips):
+    def __init__(self, join_code, name, avatar, is_host, remaining_chips):
         self.id = get_uuid()
+        self.join_code = join_code
         self.name = name
         self.avatar = avatar
         self.is_host = is_host
