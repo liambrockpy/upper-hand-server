@@ -13,6 +13,9 @@ flask-login = "*"
 python-dotenv = "*"
 flask-session = "*"
 redis = "*"
+poker = "*"
+pokerlib = "*"
+uuid = "*"
 
 [dev-packages]
 
