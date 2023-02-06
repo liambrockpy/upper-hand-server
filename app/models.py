@@ -29,13 +29,13 @@ class User(db.Model):
 
 
 class GameState:
-    def __init__(self, join_code, starting_chips, small_blind_amount, big_blind_amount, host):
+    def __init__(self, join_code, host):
         self.join_code = join_code
         self.deck = Deck().deck
         self.phase = "preflop"
-        self.starting_chips = starting_chips
-        self.small_blind_amount = small_blind_amount
-        self.big_blind_amount = big_blind_amount
+        self.starting_chips = 10000
+        self.small_blind_amount = 20
+        self.big_blind_amount = 50
         self.players = {
             "seat_1": host,
             "seat_2": None,
@@ -71,7 +71,7 @@ class GameState:
 
     def update_player(self, player):
         for seat in self.players:
-            if self.players[seat].id == player.id:
+            if self.players[seat] != None and self.players[seat].id == id:
                 self.players[seat] = player
                 return
     
