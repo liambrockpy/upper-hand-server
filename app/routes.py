@@ -5,6 +5,7 @@ from werkzeug import exceptions
 from werkzeug.urls import url_parse
 from app.models import User, Deck
 from flask_socketio import SocketIO, emit
+import json
 
 from poker import Card
 from poker.hand import Hand, Combo
@@ -12,6 +13,7 @@ from poker.hand import Hand, Combo
 from pokerlib.enums import Rank, Suit
 from pokerlib import HandParser
 
+from .sockets import create_game
 
 @app.route('/')
 def index():
@@ -21,6 +23,18 @@ def index():
     # print("SECOND",deck2.deck)
     # print(list(Combo))
     return 'Hello World'
+
+@app.route('/room', methods=['POST'])
+def create_new_room():
+    print(f'here {request.content_type}')
+    data = request.get_json()
+    json_data = json.dumps(data)
+    d = json.loads(json_data)
+    print(type(d))
+    print(f'dumped {d}')
+    game = create_game(d['game_data'], d['player_data'])
+    json_res = json.dumps(game, default=lambda obj: obj.__dict__)
+    return jsonify(json_res)
 
 
 @app.route('/@me')

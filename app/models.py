@@ -214,7 +214,7 @@ class GameState:
 
 class Player:
     def __init__(self, join_code, name, avatar, is_host, remaining_chips):
-        self.id = uuid4()
+        self.id = get_uuid()
         self.join_code = join_code
         self.name = name
         self.avatar = avatar
@@ -247,6 +247,10 @@ class Deck:
         ]
         random.shuffle(deck)
         self.deck = deck
+
+        # def get_deck_data():
+        #     return deck
+
     
 
     

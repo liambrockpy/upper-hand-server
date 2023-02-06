@@ -17,13 +17,38 @@ def disconnect():
 def handle_message(message):
     emit('message', message, broadcast=True)
 
+# @socketio.on('join')
+# def on_join(data):
+#     # username = session['username']
+#     room = data['room']
+#     join_room(room)
+#     send(username + ' has entered the room.', to=room)
+
+@socketio.on('send-new-room')
+def admin_join_room(join_code):
+    join_room(join_code)
+    return
+
+
 @socketio.on('create_game')
 def create_game(game_data, player_data):
-    host = Player(is_host=True, name=player_data['name'], avatar = player_data['avatar'], remaining_chips=game_data['starting_chips'])
-    game = GameState(join_code=game_data['join_code'], host=host)
+    host = Player(
+        is_host=True, 
+        name=player_data['name'], 
+        avatar = player_data['avatar'], 
+        remaining_chips=game_data['starting_chips']
+    )
+    game = GameState(
+        join_code=game_data['join_code'], 
+        starting_chips=game_data['starting_chips'], 
+        small_blind_amount=game_data['small_blind'], 
+        big_blind_amount=game_data['big_blind'], 
+        host=host.__dict__
+    )
     games.append(game)
-    join_room(game.join_code)
-    emit("create_game_response", game, host)
+    # join_room(game['join_code'])
+    return game
+    # emit("create_game_response", game, host)
 
 @socketio.on('join_game')
 def join_game(player_data):
