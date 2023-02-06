@@ -136,12 +136,6 @@ class GameState:
         self.phase = "showdown"
         self.winner = self.get_winner()
 
-    def assign_winner(self, winner):
-        self.winner = winner.name
-        seat = self.get_player_by_name(self.winner)
-        self.players[seat].remaining_chips += self.total_chips_in_play
-        self.players[seat].is_playing = False
-        return
 
     def get_winner(self):
         # get all players still in the game
@@ -149,12 +143,42 @@ class GameState:
         for seat in self.players:
             if self.players[seat] != None and self.players[seat].is_playing == True:
                 players_in_game.append(self.players[seat])
-        
-        # get the best hand for each player
 
         # user case where everyone has folded except one player
+        index = 1
+        tries = 0
+        while(len(players_in_game) > 1):
+            hand1 = players_in_game[0].hand + self.community_cards
+            hand2 = players_in_game[index % len(players_in_game)].hand + self.community_cards
+            hand1.parse()
+            hand2.parse()
+            if hand1 == hand2:
+                index += 1
+            elif hand1 > hand2:
+                players_in_game.pop(index % len(players_in_game))
+            else:
+                players_in_game.pop(0)
+                index = 1
+            tries += 1
+            if tries > 30:
+                break
+        
+        # One winner
         if len(players_in_game) == 1:
-            self.assign_winner(players_in_game[0])
+            self.winner = players_in_game[0].name
+            seat = self.get_player_by_name(self.winner)
+            self.players[seat].remaining_chips += self.total_chips_in_play
+            self.players[seat].is_playing = False
+            return
+        # Multiple Winners
+        else:
+            # split the pot
+            self.winner = ""
+            for player in players_in_game:
+                self.winner += player.name + " "
+                seat = self.get_player_by_name(player.name)
+                self.players[seat].remaining_chips += self.total_chips_in_play / len(players_in_game)
+                self.players[seat].is_playing = False
             return
         
 
