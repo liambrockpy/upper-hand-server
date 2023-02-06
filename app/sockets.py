@@ -2,6 +2,7 @@ from flask import request
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from app import app, db, socketio
 from app.models import Player, GameState
+import random
 
 games = []
 
@@ -24,43 +25,43 @@ def handle_message(message):
 #     join_room(room)
 #     send(username + ' has entered the room.', to=room)
 
-@socketio.on('send-new-room')
-def admin_join_room(join_code):
+@socketio.on('player_join_room')
+def player_join_room(join_code):
     join_room(join_code)
+    game = next((game for game in games if game["join_code"] == join_code), None)
+    emit("joined_game", game, room=join_code)
     return
 
 
-@socketio.on('create_game')
-def create_game(game_data, player_data):
+def create_game(player_data):
+    hash = random.randrange(1000, 9999)
     host = Player(
-        is_host=True, 
-        name=player_data['name'], 
+        id=player_data['id'],
+        is_host=True,
+        join_code=hash, 
+        name=player_data['email'].split('@')[0],
         avatar = player_data['avatar'], 
-        remaining_chips=game_data['starting_chips']
     )
     game = GameState(
-        join_code=game_data['join_code'], 
-        starting_chips=game_data['starting_chips'], 
-        small_blind_amount=game_data['small_blind'], 
-        big_blind_amount=game_data['big_blind'], 
-        host=host.__dict__
+        join_code=hash, 
+        host=host
     )
     games.append(game)
-    # join_room(game['join_code'])
     return game
-    # emit("create_game_response", game, host)
+    
 
-@socketio.on('join_game')
-def join_game(player_data):
-    join_code = player_data["join_code"]
-    game = next((game for game in games if game["join_code"] == join_code), None)
+# @socketio.on('join_game')
+def join_game(room_id, player_data):
+    game = next((game for game in games if game["join_code"] == room_id), None)
     if game == None:
-        emit('wrong_join_code')
+        return None
     else:
-        player = Player(is_host=False, name=player_data['name'], avatar=player_data['avatar'])
+        player = Player(is_host=False, name=player_data['email'].split('@')[0], avatar=player_data['avatar'])
         game.add_player(player)
-        join_room(join_code)
-        emit("joined_game", game, player, room=join_code)
+        # join_room(join_code)
+        return game
+        # 
+
 
 @socketio.on('leave_game')
 def leave_game(player):
@@ -146,7 +147,7 @@ def showdown(game_data):
         game.showdown()
         emit("showdown_response", game, room=game_data["join_code"])
 
-@socketio.io('start_round')
+@socketio.on('start_round')
 def start_round(game_data):
     game = next((game for game in games if game["join_code"] == game_data["join_code"]), None)
     if game == None:

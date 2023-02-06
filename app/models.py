@@ -6,6 +6,7 @@ from pokerlib.enums import Rank, Suit
 from pokerlib import HandParser
 import random
 
+
 def get_uuid():
     return uuid4().hex
 
@@ -50,6 +51,8 @@ class GameState:
         self.total_chips_in_play = 0
         self.winner = ""
         self.button = "seat_1"
+
+    
 
     def get_player_by_id(self, id):
         for seat in self.players:
@@ -213,14 +216,14 @@ class GameState:
 
 
 class Player:
-    def __init__(self, join_code, name, avatar, is_host, remaining_chips):
-        self.id = get_uuid()
+    def __init__(self, id, name, join_code, avatar, is_host):
+        self.id = id
         self.join_code = join_code
         self.name = name
         self.avatar = avatar
         self.is_host = is_host
         # self.original_chips = original_chips
-        self.remaining_chips = remaining_chips
+        self.remaining_chips = 10000
         self.chips_in_play = 0
         self.current_bet = 0
         self.bet_type = None
