@@ -1,6 +1,6 @@
 from flask_socketio import SocketIO, emit
 from app import app, db, socketio
-from app.models import Player, GameState, Deck
+from app.models import Player, GameState
 
 @socketio.on('connect')
 def connect():
@@ -17,5 +17,5 @@ def handle_message(message):
 @socketio.on('create_game')
 def create_game(game_data, player_data):
     host = Player(is_host=True, name=player_data['name'])
-    game = GameState(join_code=game_data['join_code'], deck= Deck.deck, phase="preflop", starting_chips=game_data['starting_chips'], small_blind_amount=game_data['small_blind'], big_blind_amount=game_data['big_blind'], players=[host], community_cards=[], total_chips_in_play=0, winner='')
+    game = GameState(join_code=game_data['join_code'], phase="preflop", starting_chips=game_data['starting_chips'], small_blind_amount=game_data['small_blind'], big_blind_amount=game_data['big_blind'], players=[host], community_cards=[], total_chips_in_play=0, winner='')
     
