@@ -29,7 +29,7 @@ class User(db.Model):
 
 
 class GameState:
-    def __init__(self, join_code, deck, phase, starting_chips, small_blind_amount, big_blind_amount, host, community_cards, total_chips_in_play, winner):
+    def __init__(self, join_code, starting_chips, small_blind_amount, big_blind_amount, host):
         self.join_code = join_code
         self.deck = Deck().deck
         self.phase = "preflop"
@@ -46,17 +46,18 @@ class GameState:
             "seat_7": None,
             "seat_8": None
         }
-        self.community_cards = community_cards
-        self.total_chips_in_play = total_chips_in_play
-        self.winner = winner
+        self.community_cards = []
+        self.total_chips_in_play = 0
+        self.winner = ""
         self.button = "seat_1"
 
-    def get_player_by_name(self, name):
+    def get_player_by_id(self, id):
         for seat in self.players:
-            if self.players[seat] != None and self.players[seat].name == name:
+            if self.players[seat] != None and self.players[seat].id == id:
                 return seat
 
     def add_player(self, player):
+        player.remaining_chips = self.starting_chips
         for seat in self.players:
             if self.players[seat] == None:
                 self.players[seat] = player
@@ -70,7 +71,7 @@ class GameState:
 
     def update_player(self, player):
         for seat in self.players:
-            if self.players[seat].name == player.name:
+            if self.players[seat].id == player.id:
                 self.players[seat] = player
                 return
     
@@ -155,8 +156,12 @@ class GameState:
             if hand1 == hand2:
                 index += 1
             elif hand1 > hand2:
+                seat = self.get_player_by_id(players_in_game[index % len(players_in_game)].id)
+                self.update_loser(seat)
                 players_in_game.pop(index % len(players_in_game))
             else:
+                seat = self.get_player_by_id(players_in_game[0].id)
+                self.update_loser(seat)
                 players_in_game.pop(0)
                 index = 1
             tries += 1
@@ -166,7 +171,7 @@ class GameState:
         # One winner
         if len(players_in_game) == 1:
             self.winner = players_in_game[0].name
-            seat = self.get_player_by_name(self.winner)
+            seat = self.get_player_by_id(players_in_game[0].id)
             self.players[seat].remaining_chips += self.total_chips_in_play
             self.players[seat].is_playing = False
             return
@@ -176,44 +181,31 @@ class GameState:
             self.winner = ""
             for player in players_in_game:
                 self.winner += player.name + " "
-                seat = self.get_player_by_name(player.name)
+                seat = self.get_player_by_id(player.id)
                 self.players[seat].remaining_chips += self.total_chips_in_play / len(players_in_game)
                 self.players[seat].is_playing = False
             return
         
+    def update_loser(self, seat):
+        self.players[seat].is_playing = False
+        self.players[seat].remaining_chips -= self.players[seat].chips_in_play
 
-
-        
-
-        
-        
-
-            
-        
-
-            
-
-
-            
-
-                    
-        
-        
 
 
 class Player:
-    def __init__(self, name, avatar, is_host, remaining_chips, chips_in_play, current_bet, bet_type, is_playing, role, hand):
+    def __init__(self, name, avatar, is_host, remaining_chips):
+        self.id = uuid4()
         self.name = name
         self.avatar = avatar
         self.is_host = is_host
         # self.original_chips = original_chips
         self.remaining_chips = remaining_chips
-        self.chips_in_play = chips_in_play
-        self.current_bet = current_bet
-        self.bet_type = bet_type
-        self.is_playing = is_playing
-        self.role = role
-        self.hand = hand
+        self.chips_in_play = 0
+        self.current_bet = 0
+        self.bet_type = None
+        self.is_playing = False
+        self.role = None
+        self.hand = None
 
 class Deck:
     def __init__(self):

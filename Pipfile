@@ -15,6 +15,7 @@ flask-session = "*"
 redis = "*"
 poker = "*"
 pokerlib = "*"
+uuid = "*"
 
 [dev-packages]
 
