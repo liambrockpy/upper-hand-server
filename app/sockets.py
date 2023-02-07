@@ -3,6 +3,7 @@ from flask_socketio import SocketIO, emit, join_room, leave_room
 from app import app, db, socketio
 from app.models import Player, GameState
 import random
+import json 
 
 games = []
 
@@ -26,11 +27,14 @@ def handle_message(message):
 #     send(username + ' has entered the room.', to=room)
 
 @socketio.on('player_join_room')
-def player_join_room(join_code):
-    join_room(join_code)
-    game = next((game for game in games if game["join_code"] == join_code), None)
-    emit("joined_game", game, room=join_code)
-    return
+def player_join_room(room_code):
+    # print(obj)
+    # room_code = obj[0]
+    print(room_code, "ADADADADADADADADADADADADADADADADDADA")
+    join_room(room_code)
+    game = find_game_by_rid(room_code)
+    json_res = json.dumps(game, default=lambda obj: obj.__dict__)
+    emit("joined_game", json_res, room=room_code)
 
 
 def create_game(player_data):
@@ -49,14 +53,26 @@ def create_game(player_data):
     games.append(game)
     return game
     
+def find_game_by_rid(room_id):
+    print(games)
+    print(room_id)
+    for g in games:
+        rid = g.get_join_code()
+        print(rid)
+        if str(rid) == str(room_id):
+            return g
+    return None
 
-# @socketio.on('join_game')
 def join_game(room_id, player_data):
-    game = next((game for game in games if game["join_code"] == room_id), None)
+    print(list(games))
+    
+    # game = next((game for game in games if game["join_code"] == room_id))
+    game = find_game_by_rid(room_id)
+    print(game)
     if game == None:
         return None
     else:
-        player = Player(is_host=False, name=player_data['email'].split('@')[0], avatar=player_data['avatar'])
+        player = Player(is_host=False, id=player_data['id'], name=player_data['email'].split('@')[0], join_code=room_id, avatar=player_data['avatar'])
         game.add_player(player)
         # join_room(join_code)
         return game
@@ -66,7 +82,7 @@ def join_game(room_id, player_data):
 @socketio.on('leave_game')
 def leave_game(player):
     join_code = player["join_code"]
-    game = next((game for game in games if game["join_code"] == join_code), None)
+    game = find_game_by_rid(join_code)
     if game == None:
         emit('wrong_join_code')
     else:
@@ -76,7 +92,7 @@ def leave_game(player):
 
 @socketio.on('start_game')
 def start_game(game_data):
-    game = next((game for game in games if game["join_code"] == game_data["join_code"]), None)
+    game = find_game_by_rid(game_data["join_code"])
     if game == None:
         emit('wrong_join_code')
     else:
@@ -88,7 +104,7 @@ def start_game(game_data):
     
 @socketio.on('update_player')
 def update_player(player_data):
-    game = next((game for game in games if game["join_code"] == player_data["join_code"]), None)
+    game = find_game_by_rid(player_data["join_code"])
     if game == None:
         emit('wrong_join_code')
     else:
@@ -98,7 +114,7 @@ def update_player(player_data):
 
 @socketio.on('player_betting_action')
 def player_betting_action(bet_type, bet_amount, player):
-    game = next((game for game in games if game["join_code"] == player["join_code"]), None)
+    game = find_game_by_rid(player["join_code"])
     if game == None:
         emit('wrong_join_code')
     else:
@@ -110,7 +126,7 @@ def player_betting_action(bet_type, bet_amount, player):
 
 @socketio.on('flop')
 def flop(game_data):
-    game = next((game for game in games if game["join_code"] == game_data["join_code"]), None)
+    game = find_game_by_rid(game_data["join_code"])
     if game == None:
         emit('wrong_join_code')
     else:
@@ -120,7 +136,7 @@ def flop(game_data):
 
 @socketio.on('turn')
 def turn(game_data):
-    game = next((game for game in games if game["join_code"] == game_data["join_code"]), None)
+    game = find_game_by_rid(game_data["join_code"])
     if game == None:
         emit('wrong_join_code')
     else:
@@ -130,7 +146,7 @@ def turn(game_data):
 
 @socketio.on('river')
 def river(game_data):
-    game = next((game for game in games if game["join_code"] == game_data["join_code"]), None)
+    game = find_game_by_rid(game_data["join_code"])
     if game == None:
         emit('wrong_join_code')
     else:
@@ -140,7 +156,7 @@ def river(game_data):
 
 @socketio.on('showdown')
 def showdown(game_data):
-    game = next((game for game in games if game["join_code"] == game_data["join_code"]), None)
+    game = find_game_by_rid(game_data["join_code"])
     if game == None:
         emit('wrong_join_code')
     else:
@@ -149,7 +165,7 @@ def showdown(game_data):
 
 @socketio.on('start_round')
 def start_round(game_data):
-    game = next((game for game in games if game["join_code"] == game_data["join_code"]), None)
+    game = find_game_by_rid(game_data['join_code'])
     if game == None:
         emit('wrong_join_code')
     else:

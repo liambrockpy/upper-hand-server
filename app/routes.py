@@ -38,6 +38,7 @@ def get_room(room_id):
     json_data = json.dumps(data)
     d = json.loads(json_data)
     game = join_game(room_id, d['player_data'])
+    print(game)
     if game is None:
         raise exceptions.NotFound
     json_res = json.dumps(game, default=lambda obj: obj.__dict__)

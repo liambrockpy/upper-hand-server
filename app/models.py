@@ -52,7 +52,11 @@ class GameState:
         self.winner = ""
         self.button = "seat_1"
 
-    
+    def __getitem__(self, index):
+        return self
+
+    def get_join_code(self):
+        return self.join_code
 
     def get_player_by_id(self, id):
         for seat in self.players:
@@ -230,6 +234,9 @@ class Player:
         self.is_playing = False
         self.role = None
         self.hand = None
+
+    def __getitem__(self):
+        return self
 
 class Deck:
     def __init__(self):
