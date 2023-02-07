@@ -41,14 +41,14 @@ def join_game(room_id, player_data):
         game.add_player(player)
         return game
         
-def start_game(room_id, start_c, small_b, big_b):
-    game = find_game_by_rid(room_id)
-    if game == None:
-        return None
-    # else:
-        # game['starting_chips'] = start_c
-        # game['small_blind_amount'] = start_c
-        # game['big_blind_amount'] = start_c
+# def start_game(room_id):
+#     game = find_game_by_rid(room_id)
+#     if game == None:
+#         return None
+#     else:
+#         game['starting_chips'] = start_c
+#         game['small_blind_amount'] = start_c
+#         game['big_blind_amount'] = start_c
 
 
 # SOCKET FUNCTIONS
