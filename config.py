@@ -30,4 +30,4 @@ class Config(object):
     # open .env and add following line
     # REDIS_URL='redis://127.0.0.1:6379' 
     # edit url/port if necessary
-    SESSION_REDIS = redis.from_url(os.environ['REDIS_URL'])
+    # SESSION_REDIS = redis.from_url(os.environ['REDIS_URL'])
