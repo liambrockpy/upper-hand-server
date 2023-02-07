@@ -1,4 +1,5 @@
 import json
+from app import app, socketio
 
 join_code = ''
 
@@ -68,3 +69,59 @@ def test_error_500(api):
     data = res.get_json()
     assert res.status_code == 500
     assert data['message'] == "It's not you, it's us"
+
+# test socketio connection
+def test_socketio(api):
+    socketio_test_client = socketio.test_client(app, flask_test_client=api)
+    assert socketio_test_client.is_connected()
+
+# test join room event
+def test_socketio_join_room(api):
+    socketio_test_client = socketio.test_client(app, flask_test_client=api)
+    socketio_test_client.emit("player_join_room", join_code)
+    r = socketio_test_client.get_received()
+    data = json.loads(r[0]["args"][0])
+    assert data["join_code"] == join_code
+    assert data != None
+
+# test leave room event
+def test_socketio_leave_room(api):
+    socketio_test_client = socketio.test_client(app, flask_test_client=api)
+    socketio_test_client.emit("player_join_room", join_code)
+    socketio_test_client.emit("leave_game", 2, join_code)
+    r = socketio_test_client.get_received()
+    data = json.loads(r[0]["args"][0])
+    assert data["join_code"] == join_code
+    assert data != None
+
+# test update player
+def test_socketio_update_player(api):
+    updateTest = {
+        "id": 1,
+        "name": "new name",
+        "avatar": "new url",
+        "join_code": join_code
+    }
+    socketio_test_client = socketio.test_client(app, flask_test_client=api)
+    socketio_test_client.emit("player_join_room", join_code)
+    socketio_test_client.emit("update_player", updateTest)
+    r = socketio_test_client.get_received()
+    data = json.loads(r[0]["args"][0])
+    assert data["join_code"] == join_code
+    assert data != None
+
+# test update game settings
+def test_socketio_update_game(api):
+    updateGame = {
+        "startingChips": 1,
+        "smallBlind": 20,
+        "bigBlind": 40,
+        "room_code": join_code
+    }
+    socketio_test_client = socketio.test_client(app, flask_test_client=api)
+    socketio_test_client.emit("player_join_room", join_code)
+    socketio_test_client.emit("update_game_settings", updateGame)
+    r = socketio_test_client.get_received()
+    data = json.loads(r[0]["args"][0])
+    assert data["join_code"] == join_code
+    assert data != None
