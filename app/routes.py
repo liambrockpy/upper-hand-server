@@ -12,7 +12,7 @@ from poker.hand import Hand, Combo
 from pokerlib.enums import Rank, Suit
 from pokerlib import HandParser
 
-from .sockets import create_game, join_game
+from .sockets import create_game, join_game, start_game
 
 @app.route('/')
 def index():
@@ -38,6 +38,17 @@ def get_room(room_id):
     json_data = json.dumps(data)
     d = json.loads(json_data)
     game = join_game(room_id, d['player_data'])
+    if game is None:
+        raise exceptions.NotFound
+    json_res = json.dumps(game, default=lambda obj: obj.__dict__)
+    return jsonify(json_res)
+
+@app.route('/game/<room_id>', methods=['POST'])
+def get_start_game_room(room_id):
+    # data = request.get_json()
+    # json_data = json.dumps(data)
+    # d = json.loads(json_data)
+    game = start_game(room_id)
     if game is None:
         raise exceptions.NotFound
     json_res = json.dumps(game, default=lambda obj: obj.__dict__)
