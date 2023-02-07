@@ -90,6 +90,7 @@ def leave_game(player_id, room_id):
     r_id = int(room_id)
     game = find_game_by_rid(r_id)
     if game == None:
+        print("hi")
         emit('wrong_join_code')
     else:
         game.remove_player(player_id)
