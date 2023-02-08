@@ -115,6 +115,13 @@ class GameState:
                 remaining_players.append(self.players[seat])
         return remaining_players
 
+    def get_remaining_players_seats(self):
+        remaining_players_seats = []
+        for seat in self.players:
+            if self.players[seat] != None and self.players[seat].is_playing and self.players[seat].bet_type != "fold":
+                remaining_players_seats.append(seat)
+        return remaining_players_seats
+
     
 
     def button_change(self):
@@ -177,28 +184,24 @@ class GameState:
                 self.start_point = seat
 
     def deal_flop(self):
-        # self.reset_bets()
         self.community_cards = [self.deck.pop(), self.deck.pop(), self.deck.pop()]
         self.phase = "flop"
         if not self.is_everyone_allin:
             self.betting_over = False
 
     def deal_turn(self):
-        # self.reset_bets()
         self.community_cards.append(self.deck.pop())
         self.phase = "turn"
         if not self.is_everyone_allin:
             self.betting_over = False
 
     def deal_river(self):
-        # self.reset_bets()
         self.community_cards.append(self.deck.pop())
         self.phase = "river"
         if not self.is_everyone_allin:
             self.betting_over = False
 
     def showdown(self):
-        # self.reset_bets()
         print("showdown")
         self.phase = "showdown"
         self.get_winner()
@@ -274,7 +277,7 @@ class GameState:
             self.betting_player_id = self.assign_next_better(id)
             self.betting_player_seat = self.get_player_by_id(self.betting_player_id)
 
-    
+    5
     def bet(self, id, amount, type):
         seat = self.get_player_by_id(id)
         self.players[seat].remaining_chips -= amount
@@ -297,11 +300,10 @@ class GameState:
 
 
     def reset_bets(self):
-        filled_seats = self.get_filled_seats()
-        allin_players = []
-        for seat in filled_seats:
-            if self.players[seat].role == "small_blind":
-                self.start_point = seat
+        # filled_seats = self.get_filled_seats()
+        # for seat in filled_seats:
+        #     if self.players[seat].role == "small_blind":
+        #         self.start_point = seat
         self.highest_bet = 0
         self.betting_over = True
         for seat in self.players:
@@ -322,11 +324,18 @@ class GameState:
             if self.players[filled_seats[next_better]].current_bet == self.highest_bet:
                 print("Betting Over")
                 self.reset_bets()
+                self.start_point = None
                 # self.betting_over = True
-                return [p for p in self.get_filled_seats_with_players() if p.role == "small_blind"][0].id
+                small_blind_player = [p for p in self.get_filled_seats_with_players() if p.role == "small_blind"][0]
+                if not small_blind_player.is_playing or small_blind_player.bet_type == "allin":
+                    self.betting_player_id = self.assign_next_better(small_blind_player.id)
+                    self.start_point = self.get_player_by_id(self.betting_player_id)
+                    return self.betting_player_id
+                else:
+                    self.betting_player_id = small_blind_player.id
+                    self.start_point = self.get_player_by_id(self.betting_player_id)
+                    return self.betting_player_id
         return self.players[filled_seats[next_better]].id
-
-
 
 
 
