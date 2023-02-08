@@ -49,13 +49,18 @@ class GameState:
         }
         self.community_cards = []
         self.total_chips_in_play = 0
-        self.winner = ""
+        self.winner = []
         self.active = False
         self.button = "seat_1"
         self.highest_bet = 0
         self.betting_player_id = None
-        self.betting_over = True
+        self.betting_player_seat = None
+        self.betting_over = False
         self.num_players = len(self.get_filled_seats())
+        self.round_num = 0
+        self.start_point = None
+        self.round_over = False
+        self.is_everyone_allin = False
 
     def __getitem__(self, index):
         return self
@@ -103,21 +108,32 @@ class GameState:
                 filled_seats.append(self.players[seat])
         return filled_seats
 
+    def get_remaining_players(self):
+        remaining_players = []
+        for seat in self.players:
+            if self.players[seat] != None and self.players[seat].is_playing:
+                remaining_players.append(self.players[seat])
+        return remaining_players
+
+    
+
     def button_change(self):
 
         filled_seats = self.get_filled_seats()
-
         filled_len = len(filled_seats)
-                
-        for seat in filled_seats:
-            if seat == self.button:
-                # assigning button role in the GameState
-                self.button = filled_seats[(filled_seats.index(seat) + 1) % filled_len]
+        self.button = filled_seats[(filled_seats.index(self.button) + 1) % filled_len]
+        print(f'new button assigned to: {self.button}')
 
         # assigning roles in player states        
         self.players[self.button].role = "button"
         self.players[filled_seats[(filled_seats.index(self.button) + 1) % filled_len]].role = "small_blind"
+        self.players[filled_seats[(filled_seats.index(self.button) + 1) % filled_len]].remaining_chips -= int(self.small_blind_amount)
+        self.players[filled_seats[(filled_seats.index(self.button) + 1) % filled_len]].chips_in_play += int(self.small_blind_amount)
+        self.players[filled_seats[(filled_seats.index(self.button) + 1) % filled_len]].current_bet += int(self.small_blind_amount)
         self.players[filled_seats[(filled_seats.index(self.button) + 2) % filled_len]].role = "big_blind"
+        self.players[filled_seats[(filled_seats.index(self.button) + 2) % filled_len]].remaining_chips -= int(self.big_blind_amount)
+        self.players[filled_seats[(filled_seats.index(self.button) + 2) % filled_len]].chips_in_play += int(self.big_blind_amount)
+        self.players[filled_seats[(filled_seats.index(self.button) + 2) % filled_len]].current_bet += int(self.big_blind_amount)
         self.players[filled_seats[(filled_seats.index(self.button) + 3) % filled_len]].role = "preflop_starter"
 
     def start_round(self):
@@ -136,11 +152,15 @@ class GameState:
         # reset game state
         self.community_cards = []
         self.total_chips_in_play = 0
-        self.winner = None
+        self.winner = []
         self.deck = Deck().deck
         self.phase = "preflop"
         self.highest_bet = 0
-        self.betting_over = True
+        self.betting_over = False
+        self.highest_bet = int(self.big_blind_amount)
+        self.total_chips_in_play += int(self.small_blind_amount) + int(self.big_blind_amount)
+        self.round_num += 1
+        self.round_over = False
 
         # deal cards
         for seat in self.players:
@@ -153,55 +173,67 @@ class GameState:
         for seat in filled_seats:
             if self.players[seat].role == "preflop_starter":
                 self.betting_player_id = self.players[seat].id
+                self.betting_player_seat = seat
+                self.start_point = seat
 
     def deal_flop(self):
-        self.reset_bets()
+        # self.reset_bets()
         self.community_cards = [self.deck.pop(), self.deck.pop(), self.deck.pop()]
         self.phase = "flop"
-        self.betting_over = False
+        if not self.is_everyone_allin:
+            self.betting_over = False
 
     def deal_turn(self):
-        self.reset_bets()
+        # self.reset_bets()
         self.community_cards.append(self.deck.pop())
         self.phase = "turn"
-        self.betting_over = False
+        if not self.is_everyone_allin:
+            self.betting_over = False
 
     def deal_river(self):
-        self.reset_bets()
+        # self.reset_bets()
         self.community_cards.append(self.deck.pop())
         self.phase = "river"
-        self.betting_over = False
+        if not self.is_everyone_allin:
+            self.betting_over = False
 
     def showdown(self):
-        self.reset_bets()
+        # self.reset_bets()
+        print("showdown")
         self.phase = "showdown"
-        self.winner = self.get_winner()
+        self.get_winner()
 
 
     def get_winner(self):
         # get all players still in the game
-        players_in_game = []
-        for seat in self.players:
-            if self.players[seat] != None and self.players[seat].is_playing == True:
-                players_in_game.append(self.players[seat])
+        players_in_game = self.get_remaining_players()
+        temp_community_cards = self.community_cards.copy()
 
         # user case where everyone has folded except one player
         index = 1
         tries = 0
         while(len(players_in_game) > 1):
-            hand1 = players_in_game[0].hand + self.community_cards
-            hand2 = players_in_game[index % len(players_in_game)].hand + self.community_cards
+            hand1_ = None
+            hand1_ =players_in_game[0].hand.copy()
+            hand1 = HandParser(hand1_)
+            hand1 += temp_community_cards
+            hand2_ = None
+            hand2_ = players_in_game[index % len(players_in_game)].hand.copy()
+            hand2 = HandParser(hand2_)
+            hand2 += temp_community_cards
+
             hand1.parse()
             hand2.parse()
+
             if hand1 == hand2:
                 index += 1
-            elif hand1 > hand2:
+            elif hand1 > hand2: 
                 seat = self.get_player_by_id(players_in_game[index % len(players_in_game)].id)
-                self.update_loser(seat)
+                self.players[seat].is_playing = False
                 players_in_game.pop(index % len(players_in_game))
             else:
                 seat = self.get_player_by_id(players_in_game[0].id)
-                self.update_loser(seat)
+                self.players[seat].is_playing = False
                 players_in_game.pop(0)
                 index = 1
             tries += 1
@@ -210,30 +242,38 @@ class GameState:
         
         # One winner
         if len(players_in_game) == 1:
-            self.winner = players_in_game[0].name
+            self.winner.append(players_in_game[0])
             seat = self.get_player_by_id(players_in_game[0].id)
             self.players[seat].remaining_chips += self.total_chips_in_play
             self.players[seat].is_playing = False
-            return
         # Multiple Winners
         else:
+            print('winner not equal to 1')
             # split the pot
-            self.winner = ""
+            self.winner = []
             for player in players_in_game:
-                self.winner += player.name + " "
+                print("winner: " + player.name)
+                self.winner.append(player)
                 seat = self.get_player_by_id(player.id)
                 self.players[seat].remaining_chips += self.total_chips_in_play / len(players_in_game)
                 self.players[seat].is_playing = False
-            return
+        self.round_over = True
         
-    def update_loser(self, seat):
-        self.players[seat].is_playing = False
-        self.players[seat].remaining_chips -= self.players[seat].chips_in_play
+    # def update_loser(self, seat):
+    #     self.players[seat].is_playing = False
+        # self.players[seat].remaining_chips -= self.players[seat].chips_in_play
 
     def fold(self, id):
         seat = self.get_player_by_id(id)
         self.players[seat].is_playing = False
         self.players[seat].bet_type = "fold"
+        remaining_players = self.get_remaining_players()
+        if len(remaining_players) == 1:
+            self.showdown()
+        else:
+            self.betting_player_id = self.assign_next_better(id)
+            self.betting_player_seat = self.get_player_by_id(self.betting_player_id)
+
     
     def bet(self, id, amount, type):
         seat = self.get_player_by_id(id)
@@ -242,11 +282,26 @@ class GameState:
         self.players[seat].current_bet += amount
         self.total_chips_in_play += amount
         self.players[seat].bet_type = type
+        filled_seats = self.get_filled_seats()
+        if type == "allin":
+            for seat in filled_seats:
+                if self.players[seat].bet_type != "allin" and self.players[seat].is_playing:
+                    self.is_everyone_allin = False
+                    break
+                self.is_everyone_allin = True
+        if self.highest_bet < self.players[seat].current_bet:
+            self.start_point = seat
         self.highest_bet = max(self.highest_bet, self.players[seat].current_bet)
         self.betting_player_id = self.assign_next_better(id)
+        self.betting_player_seat = self.get_player_by_id(self.betting_player_id)
 
 
     def reset_bets(self):
+        filled_seats = self.get_filled_seats()
+        allin_players = []
+        for seat in filled_seats:
+            if self.players[seat].role == "small_blind":
+                self.start_point = seat
         self.highest_bet = 0
         self.betting_over = True
         for seat in self.players:
@@ -255,16 +310,20 @@ class GameState:
                 self.players[seat].bet_type = None
 
     def assign_next_better(self, current_better_id):
-        filled_seats = self.get_filled_seats_with_players()
+        filled_seats = self.get_filled_seats() # gives a list of seats
         filled_len = len(filled_seats)
-        current_better = self.get_player_by_id(current_better_id)
+        current_better = self.get_player_by_id(current_better_id) # gives a seat
         current_better = filled_seats.index(current_better)
         next_better = (current_better + 1) % filled_len
-        while self.players[filled_seats[next_better]].is_playing == False:
+        while self.players[filled_seats[next_better]].is_playing == False or self.players[filled_seats[next_better]].bet_type == "allin":
             next_better = (next_better + 1) % filled_len
-        if self.players[filled_seats[next_better]].current_bet == self.highest_bet:
-            self.betting_over = True
-            return [p for p in self.players.values() if self.players.role == "small_blind"][0].id
+        # if self.phase == "pre_flop" and self.players[filled_seats[next_better]].role == "preflop_starter" or self.phase != "pre_flop" and self.players[filled_seats[next_better]].role == "small_blind":
+        if filled_seats[next_better] == self.start_point:
+            if self.players[filled_seats[next_better]].current_bet == self.highest_bet:
+                print("Betting Over")
+                self.reset_bets()
+                # self.betting_over = True
+                return [p for p in self.get_filled_seats_with_players() if p.role == "small_blind"][0].id
         return self.players[filled_seats[next_better]].id
 
 
@@ -283,7 +342,7 @@ class Player:
         self.chips_in_play = 0
         self.current_bet = 0
         self.bet_type = None
-        self.is_playing = False
+        self.is_playing = True
         self.role = None
         self.hand = None
 
@@ -307,6 +366,10 @@ class Deck:
             (Rank.KING, Suit.CLUB), (Rank.KING, Suit.DIAMOND), (Rank.KING, Suit.HEART), (Rank.KING, Suit.SPADE),
             (Rank.ACE, Suit.CLUB), (Rank.ACE, Suit.DIAMOND), (Rank.ACE, Suit.HEART), (Rank.ACE, Suit.SPADE)
         ]
+        random.shuffle(deck)
+        random.shuffle(deck)
+        random.shuffle(deck)
+        random.shuffle(deck)
         random.shuffle(deck)
         self.deck = deck
 
