@@ -94,6 +94,18 @@ def test_socketio_leave_room(api):
     assert data["join_code"] == join_code
     assert data != None
 
+# test start round event
+def test_socketio_start_round(api):
+    socketio_test_client = socketio.test_client(app, flask_test_client=api)
+    socketio_test_client.emit("player_join_room", join_code)
+    r = socketio_test_client.get_received()
+    game_data = json.loads(r[0]["args"][0])
+
+    socketio_test_client.emit("start_round", game_data)
+    r = socketio_test_client.get_received()
+    data = json.loads(r[0]["args"][0])
+    assert data['active'] == True
+
 # test update player
 def test_socketio_update_player(api):
     updateTest = {
@@ -125,3 +137,38 @@ def test_socketio_update_game(api):
     data = json.loads(r[0]["args"][0])
     assert data["join_code"] == join_code
     assert data != None
+
+# testing game phases
+def test_socketio_game_phases(api):
+    socketio_test_client = socketio.test_client(app, flask_test_client=api)
+    socketio_test_client.emit("player_join_room", join_code)
+    r = socketio_test_client.get_received()
+    game_data = json.loads(r[0]["args"][0])
+
+
+    # testing flop phase
+    socketio_test_client.emit('flop', game_data)
+    r = socketio_test_client.get_received()
+    data = json.loads(r[0]["args"][0])
+    assert len(data["community_cards"]) == 3
+
+    # testing turn phase
+    socketio_test_client.emit('turn', data)
+    r = socketio_test_client.get_received()
+    data_after_turn = json.loads(r[0]["args"][0])
+    assert len(data_after_turn["community_cards"]) == 4   
+
+    # testing river phase
+    socketio_test_client.emit('river', data_after_turn)
+    r = socketio_test_client.get_received()
+    data_after_river = json.loads(r[0]["args"][0])
+    assert len(data_after_river["community_cards"]) == 5
+    assert data_after_river['winner'] == None
+
+    # testing showdown
+    socketio_test_client.emit('showdown', data_after_turn)
+    r = socketio_test_client.get_received()
+    data_after_showdown = json.loads(r[0]["args"][0])
+    assert len(data_after_showdown["community_cards"]) == 5  
+    assert data_after_showdown['winner'] != '' 
+
