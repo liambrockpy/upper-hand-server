@@ -154,60 +154,64 @@ def player_betting_action(obj):
     if game == None:
         emit('wrong_join_code')
     else:
-        if obj.bet_type == "fold":
+        if obj["bet_type"] == "fold":
             game.fold(obj["id"])
         else:
-            game.bet(obj["id"], obj["bet_amount"], obj["bet_type"])
+            game.bet(obj["id"], int(obj["bet_amount"]), obj["bet_type"])
         json_res = json.dumps(game, default=lambda obj: obj.__dict__)
         emit("player_betting_action_response", json_res, room=obj["join_code"])
 
 @socketio.on('flop')
-def flop(game_data):
-    game = find_game_by_rid(game_data["join_code"])
+def flop(join_code):
+    print("flop")
+    game = find_game_by_rid(join_code)
     if game == None:
         emit('wrong_join_code')
     else:
         game.deal_flop()
-        game.reset_bets()
         json_res = json.dumps(game, default=lambda obj: obj.__dict__)
-        emit("flop_response", json_res, room=game_data["join_code"])
+        emit("flop_response", json_res, room=join_code)
 
 @socketio.on('turn')
-def turn(game_data):
-    game = find_game_by_rid(game_data["join_code"])
+def turn(join_code):
+    game = find_game_by_rid(join_code)
+    print("turn")
     if game == None:
         emit('wrong_join_code')
     else:
         game.deal_turn()
-        game.reset_bets()
         json_res = json.dumps(game, default=lambda obj: obj.__dict__)
-        emit("turn_response", json_res, room=game_data["join_code"])
+        emit("turn_response", json_res, room=join_code)
 
 @socketio.on('river')
-def river(game_data):
-    game = find_game_by_rid(game_data["join_code"])
+def river(join_code):
+    print("river")
+    game = find_game_by_rid(join_code)
     if game == None:
         emit('wrong_join_code')
     else:
         game.deal_river()
-        game.reset_bets()
         json_res = json.dumps(game, default=lambda obj: obj.__dict__)
-        emit("river_response", json_res, room=game_data["join_code"])
+        emit("river_response", json_res, room=join_code)
 
 @socketio.on('showdown')
-def showdown(game_data):
-    game = find_game_by_rid(game_data["join_code"])
+def showdown(join_code):
+    game = find_game_by_rid(join_code)
     if game == None:
         emit('wrong_join_code')
     else:
+        print('showdown called')
         game.showdown()
+        print('--------------------------')
+        print(f"Winner {game.winner}")
+        print('--------------------------------')
         json_res = json.dumps(game, default=lambda obj: obj.__dict__)
-        emit("showdown_response", json_res, room=game_data["join_code"])
+        emit("showdown_response", json_res, room=join_code)
 
 @socketio.on('start_round')
-def start_round(game_data):
+def start_round(join_code):
     print("start_round")
-    game = find_game_by_rid(game_data['join_code'])
+    game = find_game_by_rid(join_code)
     if game == None:
         emit('wrong_join_code')
     else:
@@ -215,5 +219,5 @@ def start_round(game_data):
         game.start_round()
         json_res = json.dumps(game, default=lambda obj: obj.__dict__)
         print(json_res)
-        emit("start_round_response", json_res, room=game_data["join_code"])
+        emit("start_round_response", json_res, room=join_code)
 
