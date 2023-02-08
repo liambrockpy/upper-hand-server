@@ -73,12 +73,14 @@ class GameState:
         for seat in self.players:
             if self.players[seat] == None:
                 self.players[seat] = player
+                self.num_players = len(self.get_filled_seats())
                 return seat
 
     def remove_player(self, player_id):
         for seat, p in self.players.items():
             if p.id == player_id:
                 self.players[seat] = None
+                self.num_players = len(self.get_filled_seats())
                 return seat
 
     def update_player(self, player):
