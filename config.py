@@ -12,8 +12,8 @@ class Config(object):
     # in this file add the following line
     # SECRET_KEY= 
     # paste your output string after the equal sign
-    # SECRET_KEY = os.environ['SECRET_KEY']
-    SECRET_KEY = b'x81\xee(\xc7\x1f\xc5\x8d\xf5\x10]\xc4\x87$\xd7\xd3w'
+    SECRET_KEY = os.environ['SECRET_KEY']
+    # SECRET_KEY = b'x81\xee(\xc7\x1f\xc5\x8d\xf5\x10]\xc4\x87$\xd7\xd3w'
     
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, 'app.db')
@@ -31,5 +31,5 @@ class Config(object):
     # open .env and add following line
     # REDIS_URL='redis://127.0.0.1:6379' 
     # edit url/port if necessary
-    # SESSION_REDIS = redis.from_url(os.environ['REDIS_URL'])
-    SESSION_REDIS = redis.from_url('redis://red-cfik4chgp3jh03khtvt0:6379')
+    SESSION_REDIS = redis.from_url(os.environ['REDIS_URL'])
+    # SESSION_REDIS = redis.from_url('redis://red-cfik4chgp3jh03khtvt0:6379')
