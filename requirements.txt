@@ -1,0 +1,16 @@
+flask-sqlalchemy
+flask-cors
+flask-migrate
+flask-socketio
+flask
+flask-login
+python-dotenv
+flask-session
+redis
+poker
+pokerlib
+uuid
+pytest
+pytest-flask
+pytest-cov
+gunicorn
