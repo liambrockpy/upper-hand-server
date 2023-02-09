@@ -2,15 +2,8 @@ from app import app, db
 from app.sockets import socketio
 from flask import jsonify, request, session
 from werkzeug import exceptions
-from werkzeug.urls import url_parse
-from app.models import User, Deck
-from flask_socketio import SocketIO, emit
+from app.models import User
 import json
-from poker import Card
-from poker.hand import Hand, Combo
-
-from pokerlib.enums import Rank, Suit
-from pokerlib import HandParser
 
 from .sockets import create_game, join_game
 
