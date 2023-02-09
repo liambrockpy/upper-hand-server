@@ -161,6 +161,17 @@ def player_betting_action(obj):
         json_res = json.dumps(game, default=lambda obj: obj.__dict__)
         emit("player_betting_action_response", json_res, room=obj["join_code"])
 
+@socketio.on('preflop')
+def preflop(join_code):
+    print("pre-flop")
+    game = find_game_by_rid(join_code)
+    if game == None:
+        emit('wrong_join_code')
+    else:
+        game.assign_preflop()
+        json_res = json.dumps(game, default=lambda obj: obj.__dict__)
+        emit("preflop_response", json_res, room=join_code)
+
 @socketio.on('flop')
 def flop(join_code):
     print("flop")
@@ -220,4 +231,31 @@ def start_round(join_code):
         json_res = json.dumps(game, default=lambda obj: obj.__dict__)
         print(json_res)
         emit("start_round_response", json_res, room=join_code)
+
+# triggered each time a player selects a seat to watch/defend
+@socketio.on('watching_event')
+def watching_event(obj):
+    join_code = obj["join_code"]
+    id = obj["id"]
+    watching_id = obj["watching_id"]
+    game = find_game_by_rid(join_code)
+    if game == None:
+        emit('wrong_join_code')
+    else:
+        game.watch(id, watching_id)
+        print(f" all watching in the socket event: {game.all_watching}")
+        if game.all_watching:
+            print(f" all watching(true) in the socket event: {game.all_watching}")
+            json_res = json.dumps(game, default=lambda obj: obj.__dict__)
+            emit("watching_event_response", json_res, room=join_code)
+
+@socketio.on("watching_round")
+def watching_round(join_code):
+    game = find_game_by_rid(join_code)
+    if game == None:
+        emit('wrong_join_code')
+    else:
+        game.watch_round()
+        json_res = json.dumps(game, default=lambda obj: obj.__dict__)
+        emit("watching_round_response", json_res, room=join_code)
 
