@@ -145,7 +145,14 @@ class GameState:
                 remaining_players_seats.append(seat)
         return remaining_players_seats
 
-    
+    def game_settings(self, starting_chips, small_blind_amount, big_blind_amount):
+        self.starting_chips = starting_chips
+        self.small_blind_amount = small_blind_amount
+        self.big_blind_amount = big_blind_amount
+        filled_seats = self.get_filled_seats()
+        for seat in filled_seats:
+            self.players[seat].remaining_chips = starting_chips
+
 
     def button_change(self):
 
@@ -177,7 +184,7 @@ class GameState:
                 self.players[seat].hand = None
                 # self.players[seat].remaining_chips = self.players[seat].original_chips
                 self.players[seat].chips_in_play = 0
-                # self.players[seat].watching_seat = None
+                self.players[seat].watching_seat_id = None
                 self.players[seat].protected = False
                 
 
@@ -194,7 +201,7 @@ class GameState:
         self.total_chips_in_play += int(self.small_blind_amount) + int(self.big_blind_amount)
         self.round_num += 1
         self.round_over = False
-        # self.all_watching = False
+        self.all_watching = False
 
         for seat in self.players:
             if self.players[seat] != None:
@@ -394,35 +401,31 @@ class GameState:
                     return self.betting_player_id
         return self.players[filled_seats[next_better]].id
 
-    # def watch(self, id, watching_id):
-    #     print(f"Watching id: {watching_id}")
-    #     print(f"id: {id}")
-    #     seat = self.get_player_by_id(id)
-    #     if id == watching_id:
-    #         self.players[seat].protected = True
-    #     self.players[seat].watching_seat = watching_id
-    #     print(f"self.seat: {self.players[seat].watching_seat}")
-    #     filled_seats = self.get_filled_seats_with_players()
-    #     for player in filled_seats:
-    #         print(player.watching_seat)
-    #         if player.watching_seat == None:
-    #             self.all_watching = False
-    #             break
-    #         self.all_watching = True
-    #     print(f"all watching in the models: {self.all_watching}")
-    #     if self.all_watching:
-    #         # self.betting_over = True
-    #         for player in filled_seats:
-    #             print(f"all_watching == true : {player.watching_seat}")
-    #             if player.watching_seat != None:
-    #                 if self.players[self.get_player_by_id(player.watching_seat)].protected:
-    #                     self.players[seat].watching_seat = None
+    def watch(self, id, watching_id):
+        print(f"Watching id: {watching_id}")
+        print(f"id: {id}")
+        # if id == watching_id:
+        #     self.players[seat].protected = True
+        #seat: "seat_1"
+        seat = self.get_player_by_id(id)
         
-
-    # def watch_round(self):
-    #     self.phase = "watch_round"
-    #     self.betting_over = False
-
+        self.players[seat].watching_seat_id = watching_id
+        print(f"self.seat: {self.players[seat].watching_seat_id}")
+        filled_seats = self.get_filled_seats_with_players()
+        for player in filled_seats:
+            print(player.watching_seat_id)
+            if player.watching_seat_id == None:
+                self.all_watching = False
+                break
+            self.all_watching = True
+    #     print(f"all watching in the models: {self.all_watching}")
+        # if self.all_watching:
+        #     for player in filled_seats:
+        #         print(f"all_watching == true : {player.watching_seat_id}")
+        #         if player.watching_seat_id != None:
+        #             if self.players[self.get_player_by_id(player.watching_seat_id)].protected:
+        #                 self.players[seat].watching_seat_id = None
+        
 
 class Player:
     def __init__(self, id, name, join_code, avatar, is_host):
@@ -439,7 +442,7 @@ class Player:
         self.is_playing = True
         self.role = None
         self.hand = None
-        # self.watching_seat = None
+        self.watching_seat_id = None
         self.protected = False
 
     def __getitem__(self):

@@ -141,9 +141,10 @@ def update_game_settings(obj):
     if game == None:
         emit('wrong_join_code')
     else:
-        game.starting_chips = obj["startingChips"]
-        game.small_blind_amount = obj["smallBlind"]
-        game.big_blind_amount = obj["bigBlind"]
+        game.starting_chips = int(obj["startingChips"])
+        game.small_blind_amount = int(obj["smallBlind"])
+        game.big_blind_amount = int(obj["bigBlind"])
+        # game.game_settings(starting_chips, small_blind_amount, big_blind_amount)
         json_res = json.dumps(game, default=lambda obj: obj.__dict__)
         emit("update_game_settings_response", json_res, room=obj["room_code"])
 
