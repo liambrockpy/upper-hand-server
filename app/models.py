@@ -62,7 +62,7 @@ class GameState:
         self.round_over = False
         self.is_everyone_allin = False
         self.winners_hand = None
-        self.all_watching = False
+        # self.all_watching = False
 
     def __getitem__(self, index):
         return self
@@ -156,7 +156,7 @@ class GameState:
                 self.players[seat].hand = None
                 # self.players[seat].remaining_chips = self.players[seat].original_chips
                 self.players[seat].chips_in_play = 0
-                self.players[seat].watching_seat = None
+                # self.players[seat].watching_seat = None
                 self.players[seat].protected = False
                 
 
@@ -173,7 +173,7 @@ class GameState:
         self.total_chips_in_play += int(self.small_blind_amount) + int(self.big_blind_amount)
         self.round_num += 1
         self.round_over = False
-        self.all_watching = False
+        # self.all_watching = False
 
         for seat in self.players:
             if self.players[seat] != None:
@@ -373,34 +373,34 @@ class GameState:
                     return self.betting_player_id
         return self.players[filled_seats[next_better]].id
 
-    def watch(self, id, watching_id):
-        print(f"Watching id: {watching_id}")
-        print(f"id: {id}")
-        seat = self.get_player_by_id(id)
-        if id == watching_id:
-            self.players[seat].protected = True
-        self.players[seat].watching_seat = watching_id
-        print(f"self.seat: {self.players[seat].watching_seat}")
-        filled_seats = self.get_filled_seats_with_players()
-        for player in filled_seats:
-            print(player.watching_seat)
-            if player.watching_seat == None:
-                self.all_watching = False
-                break
-            self.all_watching = True
-        print(f"all watching in the models: {self.all_watching}")
-        if self.all_watching:
-            # self.betting_over = True
-            for player in filled_seats:
-                print(f"all_watching == true : {player.watching_seat}")
-                if player.watching_seat != None:
-                    if self.players[self.get_player_by_id(player.watching_seat)].protected:
-                        self.players[seat].watching_seat = None
+    # def watch(self, id, watching_id):
+    #     print(f"Watching id: {watching_id}")
+    #     print(f"id: {id}")
+    #     seat = self.get_player_by_id(id)
+    #     if id == watching_id:
+    #         self.players[seat].protected = True
+    #     self.players[seat].watching_seat = watching_id
+    #     print(f"self.seat: {self.players[seat].watching_seat}")
+    #     filled_seats = self.get_filled_seats_with_players()
+    #     for player in filled_seats:
+    #         print(player.watching_seat)
+    #         if player.watching_seat == None:
+    #             self.all_watching = False
+    #             break
+    #         self.all_watching = True
+    #     print(f"all watching in the models: {self.all_watching}")
+    #     if self.all_watching:
+    #         # self.betting_over = True
+    #         for player in filled_seats:
+    #             print(f"all_watching == true : {player.watching_seat}")
+    #             if player.watching_seat != None:
+    #                 if self.players[self.get_player_by_id(player.watching_seat)].protected:
+    #                     self.players[seat].watching_seat = None
         
 
-    def watch_round(self):
-        self.phase = "watch_round"
-        self.betting_over = False
+    # def watch_round(self):
+    #     self.phase = "watch_round"
+    #     self.betting_over = False
 
 
 class Player:
@@ -418,7 +418,7 @@ class Player:
         self.is_playing = True
         self.role = None
         self.hand = None
-        self.watching_seat = None
+        # self.watching_seat = None
         self.protected = False
 
     def __getitem__(self):
