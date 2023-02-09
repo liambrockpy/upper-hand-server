@@ -2,9 +2,30 @@ from app import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from hashlib import md5
 from uuid import uuid4
-from pokerlib.enums import Rank, Suit
 from pokerlib import HandParser
 import random
+from enum import IntEnum
+
+class Rank(IntEnum):
+    TWO = 0
+    THREE = 1
+    FOUR = 2
+    FIVE = 3
+    SIX = 4
+    SEVEN = 5
+    EIGHT = 6
+    NINE = 7
+    TEN = 8
+    JACK = 9
+    QUEEN = 10
+    KING = 11
+    ACE = 12
+
+class Suit(IntEnum):
+    SPADE = 0
+    CLUB = 1
+    DIAMOND = 2
+    HEART = 3
 
 
 def get_uuid():
