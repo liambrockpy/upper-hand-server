@@ -13,11 +13,19 @@ flask-login = "*"
 python-dotenv = "*"
 flask-session = "*"
 redis = "*"
+poker = "*"
+pokerlib = "*"
+uuid = "*"
 
 [dev-packages]
+pytest = "*"
+pytest-flask = "*"
+pytest-cov = "*"
 
 [requires]
 python_version = "3.10"
 
 [scripts]
 dev = "flask --app upper_hand.py --debug run"
+test = "pytest ./app"
+coverage = "pytest --cov-report term-missing --cov=."
