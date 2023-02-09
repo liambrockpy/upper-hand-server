@@ -168,7 +168,7 @@ class GameState:
         self.deck = Deck().deck
         self.phase = "preflop"
         self.highest_bet = 0
-        self.betting_over = True
+        self.betting_over = False
         self.highest_bet = int(self.big_blind_amount)
         self.total_chips_in_play += int(self.small_blind_amount) + int(self.big_blind_amount)
         self.round_num += 1
@@ -362,7 +362,6 @@ class GameState:
                 print("Betting Over")
                 self.reset_bets()
                 self.start_point = None
-                self.betting_over = True
                 small_blind_player = [p for p in self.get_filled_seats_with_players() if p.role == "small_blind"][0]
                 if not small_blind_player.is_playing or small_blind_player.bet_type == "allin":
                     self.betting_player_id = self.assign_next_better(small_blind_player.id)
@@ -375,10 +374,13 @@ class GameState:
         return self.players[filled_seats[next_better]].id
 
     def watch(self, id, watching_id):
+        print(f"Watching id: {watching_id}")
+        print(f"id: {id}")
         seat = self.get_player_by_id(id)
         if id == watching_id:
             self.players[seat].protected = True
         self.players[seat].watching_seat = watching_id
+        print(f"self.seat: {self.players[seat].watching_seat}")
         filled_seats = self.get_filled_seats_with_players()
         for player in filled_seats:
             print(player.watching_seat)
@@ -388,11 +390,12 @@ class GameState:
             self.all_watching = True
         print(f"all watching in the models: {self.all_watching}")
         if self.all_watching:
-            self.betting_over = True
+            # self.betting_over = True
             for player in filled_seats:
-                print(player.watching_seat)
-                if self.players[self.get_player_by_id(player["watching_seat"])].protected:
-                    self.players[seat].watching_seat = None
+                print(f"all_watching == true : {player.watching_seat}")
+                if player.watching_seat != None:
+                    if self.players[self.get_player_by_id(player.watching_seat)].protected:
+                        self.players[seat].watching_seat = None
         
 
     def watch_round(self):

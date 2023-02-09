@@ -28,6 +28,6 @@ class Config(object):
     # open new terminal and run your redis server
     # there should be info about which url/port its running on, e.g. 127.0.0.1:6379
     # open .env and add following line
-    REDIS_URL='redis://127.0.0.1:6379' 
+    # REDIS_URL='redis://127.0.0.1:6379' 
     # edit url/port if necessary
     SESSION_REDIS = redis.from_url(os.environ['REDIS_URL'])
